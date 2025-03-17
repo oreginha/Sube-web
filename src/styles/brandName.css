@@ -1,0 +1,9 @@
+/* brandName.css - Styling for SUBE brand name */
+
+.brand-name {
+    font-family: 'Wild World Bold', sans-serif;
+    font-weight: bold;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
