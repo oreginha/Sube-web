@@ -4,14 +4,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
-import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Header from '@/components/common/Header';
 import { Button } from '@/components/common/Button';
 import { RootState } from '@/redux/store';
-import PaymentQROption, { QRPaymentMethod } from '@/components/common/payment/PaymentQROption';
-import MercadoPagoQR from '@/components/common/payment/MercadoPagoQR';
-import CuentaDNIQR from '@/components/common/payment/CuentaDNIQR';
 import { MoneyIcon } from '@/components/common/icons/CategoryIcons';
 
 const PageContainer = styled.div`
@@ -202,17 +199,16 @@ const PaymentSchema = Yup.object().shape({
 
 const PaymentPage: React.FC = () => {
   const router = useRouter();
-  const { selectedPlan, billingCycle } = useSelector((state: RootState) => state.subscription as { selectedPlan: any; billingCycle: string });
+  const { selectedPlan, billingCycle } = useSelector((state: RootState) => state.subscription);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | QRPaymentMethod | null>(null);
-
+  
   // If no plan is selected, redirect to subscription page
   React.useEffect(() => {
     if (!selectedPlan) {
       router.push('/suscripcion');
     }
   }, [selectedPlan, router]);
-
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -220,155 +216,121 @@ const PaymentPage: React.FC = () => {
       maximumFractionDigits: 0,
     }).format(price);
   };
-
-  const handlePaymentSuccess = () => {
-    setPaymentSuccess(true);
+  
+  const handleSubmit = (values: any, { setSubmitting }: any) => {
+    // Simulate payment processing
+    setTimeout(() => {
+      setPaymentSuccess(true);
+      setSubmitting(false);
+    }, 1500);
   };
-
-  const handlePaymentError = (error: string) => {
-    // Here you would implement error handling logic
-    console.error(error);
-  };
-
+  
   if (!selectedPlan) {
     return null; // Will redirect in useEffect
   }
-
+  
   const planPrice = billingCycle === 'monthly' ? selectedPlan.price.monthly : selectedPlan.price.annual;
-
-  function handleSubmit(values: { cardName: string; cardNumber: string; expiryMonth: string; expiryYear: string; cvv: string; }, formikHelpers: FormikHelpers<{ cardName: string; cardNumber: string; expiryMonth: string; expiryYear: string; cvv: string; }>): void | Promise<any> {
-    throw new Error('Function not implemented.');
-  }
-
+  
   return (
     <PageContainer>
       <Head>
         <title>Pago de Suscripción | SUBE</title>
         <meta name="description" content="Completá tu suscripción a SUBE" />
       </Head>
-
+      
       <Header />
-
+      
       <MainContent>
         <div className="container">
           <SectionTitle>
             Completar <span>Pago</span>
           </SectionTitle>
-
+          
           {!paymentSuccess ? (
             <>
               <SectionDescription>
-                Elegí tu método de pago preferido para completar la suscripción.
+                Estás a un paso de formar parte de la comunidad SUBE. Completá los datos de pago para finalizar tu suscripción.
               </SectionDescription>
-
-              <PaymentQROption
-                selectedMethod={paymentMethod as QRPaymentMethod}
-                onMethodSelect={(method) => setPaymentMethod(method)}
-              />
-
+              
               <PaymentContainer>
-                {paymentMethod === 'mercadopago' && (
-                  <MercadoPagoQR
-                    amount={planPrice}
-                    description={`Suscripción ${selectedPlan.name} - ${billingCycle === 'monthly' ? 'Mensual' : 'Anual'}`}
-                    onPaymentSuccess={handlePaymentSuccess}
-                    onPaymentError={handlePaymentError}
-                  />
-                )}
-
-                {paymentMethod === 'cuentadni' && (
-                  <CuentaDNIQR
-                    amount={planPrice}
-                    accountInfo={{
-                      alias: 'SUBE.PAGOS.CUENTA',
-                      cbu: '0000000000000000000000',
-                      holder: 'SUBE Argentina'
-                    }}
-                    onPaymentSuccess={handlePaymentSuccess}
-                    onPaymentError={handlePaymentError}
-                  />
-                )}
-
-                {!paymentMethod && (
-                  <Formik
-                    initialValues={{
-                      cardName: '',
-                      cardNumber: '',
-                      expiryMonth: '',
-                      expiryYear: '',
-                      cvv: '',
-                    }}
-                    validationSchema={PaymentSchema}
-                    onSubmit={handleSubmit}
-                  >
-                    {({ isSubmitting }) => (
-                      <Form>
+                <Formik
+                  initialValues={{
+                    cardName: '',
+                    cardNumber: '',
+                    expiryMonth: '',
+                    expiryYear: '',
+                    cvv: '',
+                  }}
+                  validationSchema={PaymentSchema}
+                  onSubmit={handleSubmit}
+                >
+                  {({ isSubmitting }) => (
+                    <Form>
+                      <FormGroup>
+                        <Label htmlFor="cardName">Nombre en la tarjeta</Label>
+                        <Input type="text" id="cardName" name="cardName" placeholder="Nombre completo" />
+                        <ErrorMessage name="cardName" component={ErrorText} />
+                      </FormGroup>
+                      
+                      <FormGroup>
+                        <Label htmlFor="cardNumber">Número de tarjeta</Label>
+                        <Input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" />
+                        <ErrorMessage name="cardNumber" component={ErrorText} />
+                      </FormGroup>
+                      
+                      <CardGrid>
                         <FormGroup>
-                          <Label htmlFor="cardName">Nombre en la tarjeta</Label>
-                          <Input type="text" id="cardName" name="cardName" placeholder="Nombre completo" />
-                          <ErrorMessage name="cardName" component={ErrorText} />
-                        </FormGroup>
-
-                        <FormGroup>
-                          <Label htmlFor="cardNumber">Número de tarjeta</Label>
-                          <Input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" />
-                          <ErrorMessage name="cardNumber" component={ErrorText} />
-                        </FormGroup>
-
-                        <CardGrid>
-                          <FormGroup>
-                            <Label>Fecha de vencimiento</Label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <div style={{ flex: 1 }}>
-                                <Input type="text" name="expiryMonth" placeholder="MM" />
-                                <ErrorMessage name="expiryMonth" component={ErrorText} />
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <Input type="text" name="expiryYear" placeholder="AA" />
-                                <ErrorMessage name="expiryYear" component={ErrorText} />
-                              </div>
+                          <Label>Fecha de vencimiento</Label>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <div style={{ flex: 1 }}>
+                              <Input type="text" name="expiryMonth" placeholder="MM" />
+                              <ErrorMessage name="expiryMonth" component={ErrorText} />
                             </div>
-                          </FormGroup>
-
-                          <FormGroup>
-                            <Label htmlFor="cvv">Código de seguridad</Label>
-                            <Input type="text" id="cvv" name="cvv" placeholder="123" />
-                            <ErrorMessage name="cvv" component={ErrorText} />
-                          </FormGroup>
-                        </CardGrid>
-
-                        <OrderSummary>
-                          <h3 style={{ color: 'white', marginBottom: '16px' }}>Resumen de la orden</h3>
-
-                          <SummaryItem>
-                            <span>Plan {selectedPlan.name}</span>
-                            <span>{formatPrice(planPrice)}</span>
-                          </SummaryItem>
-
-                          <SummaryItem>
-                            <span>Período</span>
-                            <span>{billingCycle === 'monthly' ? 'Mensual' : 'Anual'}</span>
-                          </SummaryItem>
-
-                          <SummaryTotal>
-                            <span>Total</span>
-                            <span>{formatPrice(planPrice)}</span>
-                          </SummaryTotal>
-                        </OrderSummary>
-
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          fullWidth
-                          disabled={isSubmitting}
-                          style={{ marginTop: '24px' }}
-                        >
-                          {isSubmitting ? 'Procesando...' : 'Completar Pago'}
-                        </Button>
-                      </Form>
-                    )}
-                  </Formik>
-                )}
+                            <div style={{ flex: 1 }}>
+                              <Input type="text" name="expiryYear" placeholder="AA" />
+                              <ErrorMessage name="expiryYear" component={ErrorText} />
+                            </div>
+                          </div>
+                        </FormGroup>
+                        
+                        <FormGroup>
+                          <Label htmlFor="cvv">Código de seguridad</Label>
+                          <Input type="text" id="cvv" name="cvv" placeholder="123" />
+                          <ErrorMessage name="cvv" component={ErrorText} />
+                        </FormGroup>
+                      </CardGrid>
+                      
+                      <OrderSummary>
+                        <h3 style={{ color: 'white', marginBottom: '16px' }}>Resumen de la orden</h3>
+                        
+                        <SummaryItem>
+                          <span>Plan {selectedPlan.name}</span>
+                          <span>{formatPrice(planPrice)}</span>
+                        </SummaryItem>
+                        
+                        <SummaryItem>
+                          <span>Período</span>
+                          <span>{billingCycle === 'monthly' ? 'Mensual' : 'Anual'}</span>
+                        </SummaryItem>
+                        
+                        <SummaryTotal>
+                          <span>Total</span>
+                          <span>{formatPrice(planPrice)}</span>
+                        </SummaryTotal>
+                      </OrderSummary>
+                      
+                      <Button 
+                        type="submit" 
+                        variant="primary" 
+                        fullWidth 
+                        disabled={isSubmitting}
+                        style={{ marginTop: '24px' }}
+                      >
+                        {isSubmitting ? 'Procesando...' : 'Completar Pago'}
+                      </Button>
+                    </Form>
+                  )}
+                </Formik>
               </PaymentContainer>
             </>
           ) : (
@@ -388,7 +350,7 @@ const PaymentPage: React.FC = () => {
           )}
         </div>
       </MainContent>
-
+      
       <Footer>
         <div className="container">
           <FooterContent>

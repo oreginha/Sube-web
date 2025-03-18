@@ -11,6 +11,14 @@ const HIDDEN_KEYWORDS = [
     { word: 'asado', memeUrl: '/images/memes/asado.gif', alt: 'Asado meme' },
     { word: 'fulbo', memeUrl: '/images/memes/fulbo.gif', alt: 'Fulbo meme' },
     { word: 'che', memeUrl: '/images/memes/che.gif', alt: 'Che meme' },
+    { word: 'messi', memeUrl: '/images/memes/messi1.gif', alt: 'messi2 meme' },
+    { word: 'guita', memeUrl: '/images/memes/guita.gif', alt: 'guita meme' },
+    { word: 'comunidad', memeUrl: '/images/memes/comunidad.gif', alt: 'homero meme' },
+    { word: 'sube', memeUrl: '/images/memes/di caprio aplaudiendo.gif', alt: 'di caprio meme' },
+    { word: 'canchero', memeUrl: '/images/memes/homero.gif', alt: 'homero meme' },
+    { word: 'popular', memeUrl: '/images/memes/ella.gif', alt: 'ella meme' },
+    { word: 'nacional', memeUrl: '/images/memes/ella2.gif', alt: 'ella2 meme' },
+    //{ word:'sube', memeUrl: '/images/memes/guitarra3.gif', alt: 'guitarra meme' },
     // ...otros keywords
 ];
 
@@ -55,6 +63,9 @@ export const initEasterEggs = () => {
  * Initialize hidden keywords
  */
 
+/**
+ * Initialize hidden keywords - versión más eficiente
+ */
 const initHiddenKeywords = () => {
     log('Initializing hidden keywords');
 
@@ -62,212 +73,248 @@ const initHiddenKeywords = () => {
     if (typeof window === 'undefined') return;
 
     // Esperar a que el DOM esté completamente cargado
-    const readyStateCheckInterval = setInterval(() => {
-        if (document.readyState === 'complete') {
-            clearInterval(readyStateCheckInterval);
-            log('Document fully loaded, setting up keywords');
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupKeywordListener);
+    } else {
+        setupKeywordListener();
+    }
+};
 
-            // Configurar inicialmente y luego de nuevo después de un retraso
-            // para capturar contenido cargado dinámicamente
-            setupHiddenKeywords();
+/**
+ * Configurar un único listener a nivel de documento
+ */
+const setupKeywordListener = () => {
+    log('Setting up document-wide keyword listener');
 
-            // Configurar un MutationObserver para detectar cambios en el DOM
-            setupMutationObserver();
+    // Usar delegación de eventos para eficiencia
+    document.body.addEventListener('mouseover', handleMouseOver);
+    document.body.addEventListener('mouseout', handleMouseOut);
+    document.body.addEventListener('click', handleClick);
 
-            // Configurar un intervalo de respaldo para asegurarse de que se procesan todos los elementos
-            setInterval(setupHiddenKeywords, 3000);
+    // Crear una hoja de estilos para las palabras clave
+    createKeywordStyles();
+
+    log('Document-wide keyword listeners installed');
+};
+
+/**
+ * Crear estilos CSS para palabras clave
+ */
+const createKeywordStyles = () => {
+    const style = document.createElement('style');
+    style.textContent = `
+        .easter-keyword {
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s ease;
         }
-    }, 100);
-};
-
-/**
- * Configurar un MutationObserver para detectar cambios en el DOM
- */
-const setupMutationObserver = () => {
-    const observer = new MutationObserver((mutations) => {
-        let shouldProcess = false;
-
-        // Verificar si las mutaciones son relevantes
-        mutations.forEach(mutation => {
-            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                shouldProcess = true;
-            }
-        });
-
-        if (shouldProcess) {
-            log('DOM changed, processing new content');
-            setupHiddenKeywords();
+        
+        .easter-keyword:hover {
+            color: #c1ff00;
         }
-    });
-
-    // Observar cambios en todo el cuerpo del documento
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
-    log('MutationObserver setup complete');
+    `;
+    document.head.appendChild(style);
 };
 
 /**
- * Setup hidden keywords - versión simplificada y más robusta
+ * Manejar evento mouseover
  */
-const setupHiddenKeywords = () => {
-    log('Setting up hidden keywords');
+const handleMouseOver = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const text = target?.textContent?.toLowerCase() || '';
 
-    // Enfoque simple: buscar todas las palabras clave directamente en el texto
-    HIDDEN_KEYWORDS.forEach(keyword => {
-        processKeyword(keyword);
-    });
+    // Solo procesar elementos de texto que no sean interactivos
+    if (target.tagName === 'BUTTON' ||
+        target.tagName === 'A' ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.classList.contains('easter-keyword')) {
+        return;
+    }
+
+    // Verificar si alguna palabra clave está en el texto
+    for (const keyword of HIDDEN_KEYWORDS) {
+        const wordRegex = new RegExp(`\\b${keyword.word.toLowerCase()}\\b`, 'i');
+        if (wordRegex.test(text)) {
+            // Reemplazar la palabra clave con un span resaltado
+            highlightKeyword(target, keyword.word, keyword.memeUrl, keyword.alt);
+            break;
+        }
+    }
 };
 
 /**
- * Procesar una palabra clave específica
+ * Manejar evento mouseout
  */
-const processKeyword = (keyword: { word: string, memeUrl: string, alt: string }) => {
+const handleMouseOut = (e: MouseEvent) => {
+    // No necesitamos hacer nada aquí,
+    // el CSS se encargará del efecto de hover
+};
+
+/**
+ * Manejar evento click
+ */
+const handleClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    // Verificar si el clic fue en una palabra clave
+    if (target.classList.contains('easter-keyword')) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const keyword = target.getAttribute('data-keyword');
+        const memeUrl = target.getAttribute('data-meme-url');
+        const alt = target.getAttribute('data-alt') || 'Meme';
+
+        if (keyword && memeUrl) {
+            showGifNearElement(target, memeUrl, alt);
+        }
+    }
+};
+
+/**
+ * Resaltar una palabra clave en un elemento
+ */
+/**
+ * Resaltar una palabra clave en un elemento
+ */
+const highlightKeyword = (element: HTMLElement, keyword: string, memeUrl: string, alt: string) => {
+    // Verificar si el elemento ya tiene palabras clave procesadas
+    if (element.getAttribute('data-keywords-processed') === 'true') {
+        return;
+    }
+
     try {
-        const word = keyword.word.toLowerCase();
-        log(`Processing keyword: ${word}`);
+        // En lugar de modificar directamente el innerHTML, trabajaremos con los nodos de texto
+        const childNodes = Array.from(element.childNodes);
+        let modified = false;
 
-        // Buscar la palabra en todo el texto visible
-        const textWalker = document.createTreeWalker(
-            document.body,
-            NodeFilter.SHOW_TEXT,
-            {
-                acceptNode: (node) => {
-                    // Ignorar nodos en script, style o ya procesados
-                    const parent = node.parentNode;
-                    if (!parent) return NodeFilter.FILTER_REJECT;
+        for (let i = 0; i < childNodes.length; i++) {
+            const node = childNodes[i];
 
-                    if (
-                        parent.nodeName === 'SCRIPT' ||
-                        parent.nodeName === 'STYLE' ||
-                        parent.nodeName === 'NOSCRIPT' ||
-                        (parent as HTMLElement).getAttribute('data-keyword-processed') === 'true'
-                    ) {
-                        return NodeFilter.FILTER_REJECT;
+            // Solo procesar nodos de texto
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent || '';
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+
+                if (regex.test(text)) {
+                    modified = true;
+
+                    // Crear un fragmento de documento para los nuevos nodos
+                    const fragment = document.createDocumentFragment();
+
+                    // Dividir el texto por la palabra clave
+                    const parts = text.split(regex);
+
+                    for (let j = 0; j < parts.length; j++) {
+                        if (parts[j].toLowerCase() === keyword.toLowerCase()) {
+                            // Crear un span para la palabra clave
+                            const span = document.createElement('span');
+                            span.textContent = parts[j]; // Mantener el texto original
+                            span.className = 'easter-keyword';
+                            span.setAttribute('data-keyword', parts[j]);
+                            span.setAttribute('data-meme-url', memeUrl);
+                            span.setAttribute('data-alt', alt);
+
+                            fragment.appendChild(span);
+                        } else if (parts[j]) {
+                            // Añadir el texto normal
+                            fragment.appendChild(document.createTextNode(parts[j]));
+                        }
                     }
 
-                    // Aceptar nodos con contenido de texto que contengan la palabra clave
-                    const text = (node.textContent || '').toLowerCase();
-                    return text.includes(word) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+                    // Reemplazar el nodo de texto con el fragmento
+                    element.replaceChild(fragment, node);
                 }
-            } as NodeFilter
-        );
-
-        const matchingNodes = [];
-        let currentNode;
-
-        // Recopilar todos los nodos que contienen la palabra clave
-        while (currentNode = textWalker.nextNode()) {
-            matchingNodes.push(currentNode);
-        }
-
-        log(`Found ${matchingNodes.length} text nodes containing "${word}"`);
-
-        // Procesar cada nodo que contiene la palabra clave
-        matchingNodes.forEach(textNode => {
-            wrapKeywordInNode(textNode as Text, word, keyword.memeUrl, keyword.alt);
-        });
-    } catch (error) {
-        log(`Error processing keyword ${keyword.word}: ${error}`);
-    }
-};
-
-/**
- * Envolver la palabra clave en un nodo de texto con un elemento span interactivo
- */
-const wrapKeywordInNode = (textNode: Text, keyword: string, gifUrl: string, gifAlt: string) => {
-    try {
-        const parent = textNode.parentNode;
-        if (!parent) return;
-
-        // Verificar si el nodo ya ha sido procesado
-        if ((parent as HTMLElement).getAttribute('data-keyword-processed') === 'true') {
-            return;
-        }
-
-        const text = textNode.textContent || '';
-        const lowerText = text.toLowerCase();
-
-        // Buscar la palabra clave exacta con límites de palabra
-        const regex = new RegExp(`(\\b${keyword}\\b)`, 'gi');
-
-        // Si no hay coincidencias, salir
-        if (!regex.test(lowerText)) return;
-
-        // Marcar el padre como procesado
-        (parent as HTMLElement).setAttribute('data-keyword-processed', 'true');
-
-        // Divide el texto en partes basadas en la palabra clave
-        const parts = text.split(regex);
-
-        // Eliminar el nodo de texto original
-        parent.removeChild(textNode);
-
-        // Crear nuevos nodos para cada parte
-        parts.forEach(part => {
-            if (part.toLowerCase() === keyword) {
-                // Crear un span para la palabra clave
-                const span = document.createElement('span');
-                span.textContent = part;
-                span.style.cursor = 'default'; // Cursor normal
-                span.setAttribute('data-keyword', keyword);
-
-                // Agregar el evento mouseover
-                span.addEventListener('mouseover', (e) => {
-                    const target = e.target as HTMLElement;
-                    const rect = target.getBoundingClientRect();
-                    showGifNearCursor(
-                        rect.left + rect.width / 2,
-                        rect.top,
-                        gifUrl,
-                        gifAlt
-                    );
-                });
-
-                parent.appendChild(span);
-            } else if (part) {
-                // Agregar texto normal
-                const newTextNode = document.createTextNode(part);
-                parent.appendChild(newTextNode);
             }
-        });
+        }
 
-        log(`Successfully processed keyword "${keyword}" in text`);
+        if (modified) {
+            element.setAttribute('data-keywords-processed', 'true');
+        }
     } catch (error) {
-        log(`Error wrapping keyword in node: ${error}`);
+        log(`Error highlighting keyword: ${error}`);
     }
 };
+
 /**
- * Gets the word at a specific position in the document
+ * Mostrar GIF cerca del elemento
  */
-const getWordAtPosition = (range: Range): string | null => {
-    const startNode = range.startContainer;
+const showGifNearElement = (element: HTMLElement, gifUrl: string, alt: string) => {
+    log(`Showing GIF for element: ${gifUrl}`);
 
-    if (startNode.nodeType !== Node.TEXT_NODE) {
-        return null;
-    }
+    // Obtener posición del elemento
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top;
 
-    const text = startNode.textContent || '';
-    const startOffset = range.startOffset;
+    // Crear el contenedor del GIF
+    const gifContainer = document.createElement('div');
+    gifContainer.style.position = 'fixed';
+    gifContainer.style.top = `${y - 10}px`;
+    gifContainer.style.left = `${x}px`;
+    gifContainer.style.transform = 'translate(-50%, -100%)';
+    gifContainer.style.zIndex = '10000';
+    gifContainer.style.opacity = '0';
+    gifContainer.style.transition = 'opacity 0.3s ease-in';
+    gifContainer.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
+    gifContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    gifContainer.style.padding = '10px';
+    gifContainer.style.borderRadius = '8px';
+    gifContainer.style.border = '2px solid #c1ff00';
 
-    // Find the beginning of the word
-    let start = startOffset;
-    while (start > 0 && !/\s/.test(text[start - 1])) {
-        start--;
-    }
+    // Crear el elemento de la imagen
+    const img = document.createElement('img');
+    img.src = gifUrl;
+    img.alt = alt;
+    img.style.maxWidth = '250px';
+    img.style.maxHeight = '250px';
+    img.style.display = 'block';
 
-    // Find the end of the word
-    let end = startOffset;
-    while (end < text.length && !/\s/.test(text[end])) {
-        end++;
-    }
+    // Agregar la imagen al contenedor
+    gifContainer.appendChild(img);
 
-    return text.substring(start, end);
+    // Agregar un botón de cierre
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '✕';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '5px';
+    closeButton.style.right = '5px';
+    closeButton.style.background = 'transparent';
+    closeButton.style.border = 'none';
+    closeButton.style.color = 'white';
+    closeButton.style.fontSize = '16px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.onclick = () => {
+        gifContainer.style.opacity = '0';
+        setTimeout(() => {
+            if (gifContainer.parentNode) {
+                gifContainer.parentNode.removeChild(gifContainer);
+            }
+        }, 300);
+    };
+    gifContainer.appendChild(closeButton);
+
+    // Agregar al cuerpo del documento
+    document.body.appendChild(gifContainer);
+
+    // Fade in
+    setTimeout(() => {
+        gifContainer.style.opacity = '1';
+    }, 10);
+
+    // Remover después de 5 segundos
+    setTimeout(() => {
+        gifContainer.style.opacity = '0';
+
+        // Remover después del fade out
+        setTimeout(() => {
+            if (gifContainer.parentNode) {
+                gifContainer.parentNode.removeChild(gifContainer);
+            }
+        }, 300);
+    }, 5000);
 };
-
-
 /**
  * Handle keyboard events
  */
@@ -278,102 +325,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
         event.preventDefault();
         togglePartyMode();
     }
-};
-/**
- * Find all text nodes in an element
- */
-const findTextNodes = (element: Node): Text[] => {
-    const textNodes: Text[] = [];
-
-    if (!element) return textNodes;
-
-    const walk = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        {
-            acceptNode: (node) => {
-                // Skip script and style tags
-                const parent = node.parentNode;
-                if (parent && (
-                    parent.nodeName === 'SCRIPT' ||
-                    parent.nodeName === 'STYLE' ||
-                    (parent as Element).getAttribute('data-easter-processed') === 'true'
-                )) {
-                    return NodeFilter.FILTER_REJECT;
-                }
-
-                // Accept non-empty text nodes
-                return node.textContent && node.textContent.trim() !== ''
-                    ? NodeFilter.FILTER_ACCEPT
-                    : NodeFilter.FILTER_REJECT;
-            }
-        } as NodeFilter
-    );
-
-    let node;
-    while (node = walk.nextNode()) {
-        textNodes.push(node as Text);
-    }
-
-    return textNodes;
-};
-
-/**
- * Show GIF near cursor position - mejorado
- */
-const showGifNearCursor = (x: number, y: number, gifUrl: string, alt: string) => {
-    log(`Showing GIF near position (${x}, ${y}): ${gifUrl}`);
-
-    // Verificar si ya existe un GIF con la misma URL
-    const existingGif = document.querySelector(`img[src="${gifUrl}"]`);
-    if (existingGif) {
-        log('GIF already showing, not creating duplicate');
-        return;
-    }
-
-    // Crear el contenedor del GIF
-    const gifContainer = document.createElement('div');
-    gifContainer.style.position = 'fixed';
-    gifContainer.style.top = `${y - 10}px`;
-    gifContainer.style.left = `${x + 20}px`;
-    gifContainer.style.transform = 'translate(-50%, -100%)';
-    gifContainer.style.zIndex = '10000';
-    gifContainer.style.pointerEvents = 'none';
-    gifContainer.style.opacity = '0';
-    gifContainer.style.transition = 'opacity 0.3s ease-in';
-    gifContainer.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
-
-    // Crear el elemento de la imagen
-    const img = document.createElement('img');
-    img.src = gifUrl;
-    img.alt = alt;
-    img.style.maxWidth = '250px';
-    img.style.maxHeight = '250px';
-    img.style.borderRadius = '8px';
-    img.style.border = '3px solid #c1ff00';
-
-    // Agregar la imagen al contenedor
-    gifContainer.appendChild(img);
-
-    // Agregar al cuerpo del documento
-    document.body.appendChild(gifContainer);
-
-    // Fade in
-    setTimeout(() => {
-        gifContainer.style.opacity = '1';
-    }, 10);
-
-    // Remover después de 3 segundos
-    setTimeout(() => {
-        gifContainer.style.opacity = '0';
-
-        // Remover después del fade out
-        setTimeout(() => {
-            if (gifContainer.parentNode) {
-                gifContainer.parentNode.removeChild(gifContainer);
-            }
-        }, 300);
-    }, 3000);
 };
 
 /**
