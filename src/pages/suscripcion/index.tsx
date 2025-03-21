@@ -1,220 +1,34 @@
 import React from 'react';
-import styled from 'styled-components';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useSelector, useDispatch } from 'react-redux';
-import Header from '@/components/common/Header';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/common/Button';
 import { RootState } from '@/redux/store';
-import { selectPlan, setBillingCycle, SubscriptionPlan } from '@/redux/slices/subscriptionSlice';
-
-const PageContainer = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const MainContent = styled.main`
-  flex: 1;
-  padding: ${({ theme }) => theme.spacing.xl} 0;
-`;
-
-const SectionTitle = styled.h1`
-  text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  
-  span {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const SectionDescription = styled.p`
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 1.125rem;
-`;
-
-const BillingToggle = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-`;
-
-const BillingOption = styled.span<{ active: boolean }>`
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  color: ${({ active, theme }) => active ? theme.colors.primary : theme.colors.white};
-  font-weight: ${({ active, theme }) => active ? theme.fontWeights.bold : theme.fontWeights.medium};
-  cursor: pointer;
-  transition: color ${({ theme }) => theme.transitions.fast};
-`;
-
-const ToggleSwitch = styled.div`
-  width: 50px;
-  height: 26px;
-  background-color: ${({ theme }) => theme.colors.primary};
-  border-radius: 13px;
-  margin: 0 ${({ theme }) => theme.spacing.sm};
-  position: relative;
-  cursor: pointer;
-  transition: background-color ${({ theme }) => theme.transitions.fast};
-`;
-
-const ToggleKnob = styled.div<{ position: 'left' | 'right' }>`
-  width: 20px;
-  height: 20px;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: ${({ position }) => position === 'left' ? '3px' : '27px'};
-  transition: left ${({ theme }) => theme.transitions.fast};
-`;
-
-const PlansGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const PlanCard = styled.div<{ selected: boolean }>`
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 2px solid ${({ selected, theme }) => selected ? theme.colors.primary : 'transparent'};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  padding: ${({ theme }) => theme.spacing.lg};
-  transition: all ${({ theme }) => theme.transitions.normal};
-  cursor: pointer;
-  
-  &:hover {
-    transform: translateY(-5px);
-    border-color: ${({ selected, theme }) => selected ? theme.colors.primary : 'rgba(193, 255, 0, 0.3)'};
-  }
-`;
-
-const PlanHeader = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-  padding-bottom: ${({ theme }) => theme.spacing.md};
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const PlanName = styled.h3`
-  color: ${({ theme }) => theme.colors.primary};
-  margin-bottom: ${({ theme }) => theme.spacing.xs};
-`;
-
-const PlanPrice = styled.div`
-  display: flex;
-  align-items: baseline;
-`;
-
-const PriceAmount = styled.span`
-  font-size: 2rem;
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.white};
-`;
-
-const PriceCurrency = styled.span`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.colors.gray};
-  margin-right: ${({ theme }) => theme.spacing.xs};
-`;
-
-const PriceInterval = styled.span`
-  font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.gray};
-  margin-left: ${({ theme }) => theme.spacing.xs};
-`;
-
-const PlanFeatures = styled.ul`
-  list-style: none;
-  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  padding: 0;
-`;
-
-const PlanFeature = styled.li`
-  display: flex;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.colors.white};
-  
-  &:before {
-    content: '✓';
-    color: ${({ theme }) => theme.colors.primary};
-    margin-right: ${({ theme }) => theme.spacing.sm};
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
-  }
-`;
-
-const CTASection = styled.section`
-  margin-top: ${({ theme }) => theme.spacing.xxl};
-  padding: ${({ theme }) => theme.spacing.xl};
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  text-align: center;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const CTATitle = styled.h2`
-  color: ${({ theme }) => theme.colors.white};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-
-const CTADescription = styled.p`
-  color: ${({ theme }) => theme.colors.white};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-`;
-
-const Footer = styled.footer`
-  padding: ${({ theme }) => theme.spacing.xl} 0;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const FooterContent = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: column;
-    gap: ${({ theme }) => theme.spacing.lg};
-    text-align: center;
-  }
-`;
-
-const FooterLinks = styled.div`
-  display: flex;
-  gap: ${({ theme }) => theme.spacing.md};
-  
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: column;
-    gap: ${({ theme }) => theme.spacing.sm};
-  }
-`;
-
-const FooterLink = styled.a`
-  color: ${({ theme }) => theme.colors.white};
-  transition: color ${({ theme }) => theme.transitions.fast};
-  
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-    text-decoration: none;
-  }
-`;
-
-const Copyright = styled.p`
-  color: ${({ theme }) => theme.colors.gray};
-  margin-bottom: 0;
-`;
+import { selectPlan, setBillingCycle } from '@/redux/slices/subscriptionSlice';
+import {
+  MainContent,
+  SectionTitle,
+  SectionDescription,
+  PlanCard,
+  PlanHeader,
+  PlanName,
+  PlanPrice,
+  PlansGrid,
+  BillingToggle,
+  BillingOption,
+  ToggleSwitch,
+  ToggleKnob,
+  PriceAmount,
+  PriceCurrency,
+  PriceInterval,
+  PlanFeatures,
+  PlanFeature,
+  CTASection,
+  CTATitle,
+  CTADescription
+} from '@/components/componentsIndex';
+import PageContainer from '@/components/layout/PageContainer';
 
 const SubscriptionPage: React.FC = () => {
   const dispatch = useDispatch();
@@ -243,7 +57,7 @@ const SubscriptionPage: React.FC = () => {
         <meta name="description" content="Elegí el plan de suscripción que mejor se adapte a tus necesidades y subite a nuestra comunidad" />
       </Head>
 
-      <Header />
+
 
       <MainContent>
         <div className="container">
@@ -327,25 +141,6 @@ const SubscriptionPage: React.FC = () => {
           </CTASection>
         </div>
       </MainContent>
-
-      <Footer>
-        <div className="container">
-          <FooterContent>
-            <Copyright>© {new Date().getFullYear()} SUBE. Todos los derechos reservados, viste?</Copyright>
-            <FooterLinks>
-              <Link href="/terminos" legacyBehavior>
-                <FooterLink>Términos y esas cosas</FooterLink>
-              </Link>
-              <Link href="/privacidad" legacyBehavior>
-                <FooterLink>Privacidad y secretitos</FooterLink>
-              </Link>
-              <Link href="/contacto" legacyBehavior>
-                <FooterLink>Mandanos un mensajito</FooterLink>
-              </Link>
-            </FooterLinks>
-          </FooterContent>
-        </div>
-      </Footer>
     </PageContainer>
   );
 };

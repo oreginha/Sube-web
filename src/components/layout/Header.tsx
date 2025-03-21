@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { Button } from './Button';
-import { Logo } from './Logo';
+import { Button } from '../common/Button';
 
 const HeaderContainer = styled.header`
   background-color: ${({ theme }) => theme.colors.secondary};
@@ -127,14 +126,13 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  // Update the usage in the return statement
   return (
     <HeaderContainer>
       <div className="container">
         <HeaderContent>
-          <Link href="/">
-            <Logo />
-          </Link>
+          {/* Remove the Logo component here */}
+          <div></div> {/* Empty div to maintain spacing */}
+
           <NavContainer $isOpen={isMenuOpen}>
             <CloseButton onClick={closeMenu}>
               <FiX />
@@ -146,7 +144,7 @@ const Header: React.FC = () => {
                 </Link>
               </NavItem>
               <NavItem>
-                <Link href="/contenidos">
+                <Link href="/contenidos/contenidosIndex.tsx">
                   <NavLink>Contenidos</NavLink>
                 </Link>
               </NavItem>
@@ -176,7 +174,7 @@ const Header: React.FC = () => {
           <Link href="/suscripcion">
             <Button variant="primary" size="small">Asociate</Button>
           </Link>
-          
+
           <MobileMenuButton onClick={toggleMenu}>
             <FiMenu />
           </MobileMenuButton>

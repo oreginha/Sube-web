@@ -8,6 +8,7 @@ import '../styles/fonts.css';
 import '../styles/brandName.css';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import RootLayout from '@/components/layout/RootLayout';
 
 // Importar initEasterEggs dinámicamente para asegurar que solo se ejecuta en el cliente
 const EasterEggManager = dynamic(
@@ -27,7 +28,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
-        <Component {...pageProps} />
+        <RootLayout>
+          <Component {...pageProps} />
+        </RootLayout>
         {isMounted && <EasterEggManager />}
       </ThemeProvider>
     </Provider>

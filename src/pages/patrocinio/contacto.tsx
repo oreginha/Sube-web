@@ -2,39 +2,12 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import Head from 'next/head';
 import Link from 'next/link';
-import Header from '@/components/common/Header';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/common/Button';
+import { MainContent, SectionTitle, SectionDescription } from '@/components/componentsIndex';
+import PageContainer from '@/components/layout/PageContainer';
 
-const PageContainer = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-`;
 
-const MainContent = styled.main`
-  flex: 1;
-  padding: ${({ theme }) => theme.spacing.xl} 0;
-`;
-
-const SectionTitle = styled.h1`
-  text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  
-  span {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const SectionDescription = styled.p`
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 1.125rem;
-`;
 
 const FormContainer = styled.div`
   max-width: 600px;
@@ -159,7 +132,7 @@ const ContactoPatrocinioPage: React.FC = () => {
     company: '',
     message: ''
   });
-  
+
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -174,12 +147,12 @@ const ContactoPatrocinioPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       // Here you would normally send the data to your backend
       // For now, we'll just simulate a successful submission
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       setFormStatus('success');
       setFormData({
         name: '',
@@ -219,13 +192,13 @@ const ContactoPatrocinioPage: React.FC = () => {
                 ¡Gracias por contactarnos! Nos comunicaremos con vos a la brevedad.
               </SuccessMessage>
             )}
-            
+
             {formStatus === 'error' && (
               <ErrorMessage>
                 Hubo un error al enviar el formulario. Por favor, intentá nuevamente.
               </ErrorMessage>
             )}
-            
+
             <form onSubmit={handleSubmit}>
               <FormGroup>
                 <Label htmlFor="name">Nombre y Apellido</Label>
@@ -238,7 +211,7 @@ const ContactoPatrocinioPage: React.FC = () => {
                   required
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -250,7 +223,7 @@ const ContactoPatrocinioPage: React.FC = () => {
                   required
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="phone">Teléfono</Label>
                 <Input
@@ -262,7 +235,7 @@ const ContactoPatrocinioPage: React.FC = () => {
                   required
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="company">Empresa o Proyecto</Label>
                 <Input
@@ -274,7 +247,7 @@ const ContactoPatrocinioPage: React.FC = () => {
                   required
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="message">Mensaje</Label>
                 <TextArea
@@ -285,11 +258,11 @@ const ContactoPatrocinioPage: React.FC = () => {
                   required
                 />
               </FormGroup>
-              
-              <Button 
-                type="submit" 
-                variant="primary" 
-                fullWidth 
+
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
@@ -298,7 +271,7 @@ const ContactoPatrocinioPage: React.FC = () => {
           </FormContainer>
         </div>
       </MainContent>
-      
+
       <Footer>
         <div className="container">
           <FooterContent>

@@ -6,41 +6,13 @@ import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import Header from '@/components/common/Header';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/common/Button';
 import { RootState } from '@/redux/store';
-import { MoneyIcon } from '@/components/common/icons/CategoryIcons';
+import { MoneyIcon } from '@/components/icons/CategoryIcons';
+import { MainContent, SectionTitle, SectionDescription } from '@/components/componentsIndex';
+import PageContainer from '@/components/layout/PageContainer';
 
-const PageContainer = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const MainContent = styled.main`
-  flex: 1;
-  padding: ${({ theme }) => theme.spacing.xl} 0;
-`;
-
-const SectionTitle = styled.h1`
-  text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  
-  span {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const SectionDescription = styled.p`
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto ${({ theme }) => theme.spacing.xl};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 1.125rem;
-`;
 
 const PaymentContainer = styled.div`
   max-width: 600px;
@@ -201,14 +173,14 @@ const PaymentPage: React.FC = () => {
   const router = useRouter();
   const { selectedPlan, billingCycle } = useSelector((state: RootState) => state.subscription);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  
+
   // If no plan is selected, redirect to subscription page
   React.useEffect(() => {
     if (!selectedPlan) {
       router.push('/suscripcion');
     }
   }, [selectedPlan, router]);
-  
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -216,7 +188,7 @@ const PaymentPage: React.FC = () => {
       maximumFractionDigits: 0,
     }).format(price);
   };
-  
+
   const handleSubmit = (values: any, { setSubmitting }: any) => {
     // Simulate payment processing
     setTimeout(() => {
@@ -224,34 +196,34 @@ const PaymentPage: React.FC = () => {
       setSubmitting(false);
     }, 1500);
   };
-  
+
   if (!selectedPlan) {
     return null; // Will redirect in useEffect
   }
-  
+
   const planPrice = billingCycle === 'monthly' ? selectedPlan.price.monthly : selectedPlan.price.annual;
-  
+
   return (
     <PageContainer>
       <Head>
         <title>Pago de Suscripción | SUBE</title>
         <meta name="description" content="Completá tu suscripción a SUBE" />
       </Head>
-      
+
       <Header />
-      
+
       <MainContent>
         <div className="container">
           <SectionTitle>
             Completar <span>Pago</span>
           </SectionTitle>
-          
+
           {!paymentSuccess ? (
             <>
               <SectionDescription>
                 Estás a un paso de formar parte de la comunidad SUBE. Completá los datos de pago para finalizar tu suscripción.
               </SectionDescription>
-              
+
               <PaymentContainer>
                 <Formik
                   initialValues={{
@@ -271,13 +243,13 @@ const PaymentPage: React.FC = () => {
                         <Input type="text" id="cardName" name="cardName" placeholder="Nombre completo" />
                         <ErrorMessage name="cardName" component={ErrorText} />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <Label htmlFor="cardNumber">Número de tarjeta</Label>
                         <Input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" />
                         <ErrorMessage name="cardNumber" component={ErrorText} />
                       </FormGroup>
-                      
+
                       <CardGrid>
                         <FormGroup>
                           <Label>Fecha de vencimiento</Label>
@@ -292,37 +264,37 @@ const PaymentPage: React.FC = () => {
                             </div>
                           </div>
                         </FormGroup>
-                        
+
                         <FormGroup>
                           <Label htmlFor="cvv">Código de seguridad</Label>
                           <Input type="text" id="cvv" name="cvv" placeholder="123" />
                           <ErrorMessage name="cvv" component={ErrorText} />
                         </FormGroup>
                       </CardGrid>
-                      
+
                       <OrderSummary>
                         <h3 style={{ color: 'white', marginBottom: '16px' }}>Resumen de la orden</h3>
-                        
+
                         <SummaryItem>
                           <span>Plan {selectedPlan.name}</span>
                           <span>{formatPrice(planPrice)}</span>
                         </SummaryItem>
-                        
+
                         <SummaryItem>
                           <span>Período</span>
                           <span>{billingCycle === 'monthly' ? 'Mensual' : 'Anual'}</span>
                         </SummaryItem>
-                        
+
                         <SummaryTotal>
                           <span>Total</span>
                           <span>{formatPrice(planPrice)}</span>
                         </SummaryTotal>
                       </OrderSummary>
-                      
-                      <Button 
-                        type="submit" 
-                        variant="primary" 
-                        fullWidth 
+
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        fullWidth
                         disabled={isSubmitting}
                         style={{ marginTop: '24px' }}
                       >
@@ -350,7 +322,7 @@ const PaymentPage: React.FC = () => {
           )}
         </div>
       </MainContent>
-      
+
       <Footer>
         <div className="container">
           <FooterContent>
